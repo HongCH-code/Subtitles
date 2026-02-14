@@ -67,21 +67,24 @@ export function resegment(chunks, maxInterval) {
     }
   }
 
-  return result;
+  // Filter out any segments with empty text
+  return result.filter((seg) => seg.text.length > 0);
 }
 
 /**
  * Format seconds to SRT timestamp: HH:MM:SS,mmm
+ * Computes from total milliseconds to avoid rounding producing ms=1000.
  *
  * @param {number} seconds
  * @returns {string}
  */
 function formatSRTTime(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const ms = Math.round((seconds % 1) * 1000);
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+  const totalMs = Math.round(seconds * 1000)
+  const h = Math.floor(totalMs / 3600000)
+  const m = Math.floor((totalMs % 3600000) / 60000)
+  const s = Math.floor((totalMs % 60000) / 1000)
+  const ms = totalMs % 1000
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`
 }
 
 /**

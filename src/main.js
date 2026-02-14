@@ -22,11 +22,12 @@ function hideProgress() {
 // --- Settings ---
 function getSettings() {
   const intervalValue = document.getElementById('interval-select').value
-  const customInterval = parseFloat(document.getElementById('custom-interval').value)
+  const rawCustomInterval = parseFloat(document.getElementById('custom-interval').value)
+  const customInterval = Math.max(1, Math.min(60, rawCustomInterval || 5))
   return {
     language: document.getElementById('lang-select').value,
     model: document.getElementById('model-select').value,
-    interval: intervalValue === 'custom' ? (customInterval || 5) : parseFloat(intervalValue),
+    interval: intervalValue === 'custom' ? customInterval : parseFloat(intervalValue),
   }
 }
 
@@ -117,7 +118,7 @@ startBtn.addEventListener('click', async () => {
 
   try {
     // 1. Extract audio
-    const audioData = await extractAudio(file, showProgress)
+    let audioData = await extractAudio(file, showProgress)
 
     // 2. Transcribe
     const settings = getSettings()
@@ -126,6 +127,9 @@ startBtn.addEventListener('click', async () => {
       model: settings.model,
       onProgress: showProgress,
     })
+
+    // Free audio memory after transcription
+    audioData = null
 
     // 3. Process subtitles
     showProgress('產生字幕...', 0.9)
@@ -151,9 +155,14 @@ startBtn.addEventListener('click', async () => {
 // --- Copy to clipboard ---
 document.getElementById('copy-btn').addEventListener('click', async () => {
   const content = activeTab === 'srt' ? srtContent : textContent
-  await navigator.clipboard.writeText(content)
   const btn = document.getElementById('copy-btn')
-  btn.textContent = '已複製！'
+  try {
+    await navigator.clipboard.writeText(content)
+    btn.textContent = '已複製！'
+  } catch (err) {
+    console.error('Clipboard write failed:', err)
+    btn.textContent = '複製失敗'
+  }
   setTimeout(() => { btn.textContent = '複製全部' }, 2000)
 })
 
@@ -164,7 +173,9 @@ function download(content, filename) {
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
 

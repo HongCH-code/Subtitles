@@ -1,9 +1,11 @@
 import { pipeline } from '@huggingface/transformers'
 
 let transcriber = null
+let loadedModelId = null
 
 /**
  * Load or return cached Whisper pipeline.
+ * Reloads if the requested model differs from the cached one.
  * @param {string} model - 'base' or 'small'
  * @param {Function} onProgress - callback(statusText, progressFloat)
  */
@@ -12,7 +14,16 @@ async function loadModel(model, onProgress) {
     ? 'onnx-community/whisper-small'
     : 'onnx-community/whisper-base'
 
+  if (transcriber && loadedModelId === modelId) return transcriber
+
   onProgress?.('載入語音辨識模型...', 0)
+
+  // Dispose old pipeline if switching models
+  if (transcriber) {
+    await transcriber.dispose?.()
+    transcriber = null
+    loadedModelId = null
+  }
 
   transcriber = await pipeline('automatic-speech-recognition', modelId, {
     dtype: 'q8',
@@ -24,6 +35,8 @@ async function loadModel(model, onProgress) {
       }
     },
   })
+
+  loadedModelId = modelId
 
   return transcriber
 }
@@ -38,9 +51,7 @@ async function loadModel(model, onProgress) {
  * @returns {Array<{start: number, end: number, text: string}>} - timestamped chunks
  */
 export async function transcribe(audioData, { language, model, onProgress }) {
-  if (!transcriber) {
-    await loadModel(model, onProgress)
-  }
+  await loadModel(model, onProgress)
 
   onProgress?.('辨識語音中...', 0.5)
 
