@@ -139,3 +139,35 @@ startBtn.addEventListener('click', async () => {
     startBtn.textContent = '開始轉寫'
   }
 })
+
+// --- Copy to clipboard ---
+document.getElementById('copy-btn').addEventListener('click', async () => {
+  const content = activeTab === 'srt' ? srtContent : textContent
+  await navigator.clipboard.writeText(content)
+  const btn = document.getElementById('copy-btn')
+  btn.textContent = '已複製！'
+  setTimeout(() => { btn.textContent = '複製全部' }, 2000)
+})
+
+// --- Download helper ---
+function download(content, filename) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// --- Download SRT ---
+document.getElementById('download-srt-btn').addEventListener('click', () => {
+  const name = (selectedFile?.name || 'video').replace(/\.[^.]+$/, '') + '.srt'
+  download(srtContent, name)
+})
+
+// --- Download TXT ---
+document.getElementById('download-txt-btn').addEventListener('click', () => {
+  const name = (selectedFile?.name || 'video').replace(/\.[^.]+$/, '') + '.txt'
+  download(textContent, name)
+})
