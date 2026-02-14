@@ -1,5 +1,34 @@
 import './style.css'
 import { setupFileUpload, fetchVideoFromURL } from './file-handler.js'
+import { extractAudio } from './audio-extractor.js'
+import { transcribe } from './transcriber.js'
+import { resegment, generateSRT, generateText } from './subtitle-generator.js'
+
+// --- Module-level state for results ---
+let srtContent = ''
+let textContent = ''
+let activeTab = 'text'
+
+// --- Progress helpers ---
+function showProgress(text, progress) {
+  document.getElementById('progress-section').style.display = 'block'
+  document.getElementById('progress-text').textContent = text
+  document.getElementById('progress-bar').style.width = `${Math.round(progress * 100)}%`
+}
+function hideProgress() {
+  document.getElementById('progress-section').style.display = 'none'
+}
+
+// --- Settings ---
+function getSettings() {
+  const intervalValue = document.getElementById('interval-select').value
+  const customInterval = parseFloat(document.getElementById('custom-interval').value)
+  return {
+    language: document.getElementById('lang-select').value,
+    model: document.getElementById('model-select').value,
+    interval: intervalValue === 'custom' ? (customInterval || 5) : parseFloat(intervalValue),
+  }
+}
 
 // --- Custom interval toggle ---
 const intervalSelect = document.getElementById('interval-select')
@@ -17,15 +46,15 @@ intervalSelect.addEventListener('change', () => {
 const tabText = document.getElementById('tab-text')
 const tabSrt = document.getElementById('tab-srt')
 
-tabText.addEventListener('click', () => {
-  tabText.classList.add('active')
-  tabSrt.classList.remove('active')
-})
+function switchTab(tab) {
+  activeTab = tab
+  tabText.classList.toggle('active', tab === 'text')
+  tabSrt.classList.toggle('active', tab === 'srt')
+  document.getElementById('result-content').textContent = tab === 'srt' ? srtContent : textContent
+}
 
-tabSrt.addEventListener('click', () => {
-  tabSrt.classList.add('active')
-  tabText.classList.remove('active')
-})
+tabText.addEventListener('click', () => switchTab('text'))
+tabSrt.addEventListener('click', () => switchTab('srt'))
 
 // --- File upload handling ---
 const dropZone = document.getElementById('drop-zone')
@@ -75,6 +104,38 @@ startBtn.addEventListener('click', async () => {
     }
   }
 
-  // TODO: Task 7 will add the actual processing pipeline here
-  console.log('Selected file:', file.name, 'Size:', formatFileSize(file.size), 'Type:', file.type)
+  startBtn.disabled = true
+  document.getElementById('results-section').style.display = 'none'
+
+  try {
+    // 1. Extract audio
+    const audioData = await extractAudio(file, showProgress)
+
+    // 2. Transcribe
+    const settings = getSettings()
+    const chunks = await transcribe(audioData, {
+      language: settings.language,
+      model: settings.model,
+      onProgress: showProgress,
+    })
+
+    // 3. Process subtitles
+    showProgress('產生字幕...', 0.9)
+    const segments = resegment(chunks, settings.interval)
+    srtContent = generateSRT(segments)
+    textContent = generateText(segments)
+
+    // 4. Show results
+    hideProgress()
+    document.getElementById('results-section').style.display = 'block'
+    switchTab(activeTab)
+
+  } catch (err) {
+    hideProgress()
+    alert('處理失敗: ' + err.message)
+    console.error(err)
+  } finally {
+    startBtn.disabled = false
+    startBtn.textContent = '開始轉寫'
+  }
 })
