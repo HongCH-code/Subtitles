@@ -1,24 +1,50 @@
 import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+// --- Custom interval toggle ---
+const intervalSelect = document.getElementById('interval-select')
+const customIntervalGroup = document.getElementById('custom-interval-group')
 
-setupCounter(document.querySelector('#counter'))
+intervalSelect.addEventListener('change', () => {
+  if (intervalSelect.value === 'custom') {
+    customIntervalGroup.style.display = ''
+  } else {
+    customIntervalGroup.style.display = 'none'
+  }
+})
+
+// --- Tab switching ---
+const tabText = document.getElementById('tab-text')
+const tabSrt = document.getElementById('tab-srt')
+
+tabText.addEventListener('click', () => {
+  tabText.classList.add('active')
+  tabSrt.classList.remove('active')
+})
+
+tabSrt.addEventListener('click', () => {
+  tabSrt.classList.add('active')
+  tabText.classList.remove('active')
+})
+
+// --- Drop zone click to trigger file input ---
+const dropZone = document.getElementById('drop-zone')
+const fileInput = document.getElementById('file-input')
+
+dropZone.addEventListener('click', () => {
+  fileInput.click()
+})
+
+// --- Drop zone drag & drop visual feedback ---
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault()
+  dropZone.classList.add('dragover')
+})
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover')
+})
+
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault()
+  dropZone.classList.remove('dragover')
+})
