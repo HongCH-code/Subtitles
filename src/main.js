@@ -1,4 +1,5 @@
 import './style.css'
+import { setupFileUpload, fetchVideoFromURL } from './file-handler.js'
 
 // --- Custom interval toggle ---
 const intervalSelect = document.getElementById('interval-select')
@@ -26,25 +27,54 @@ tabSrt.addEventListener('click', () => {
   tabText.classList.remove('active')
 })
 
-// --- Drop zone click to trigger file input ---
+// --- File upload handling ---
 const dropZone = document.getElementById('drop-zone')
 const fileInput = document.getElementById('file-input')
+let selectedFile = null
 
-dropZone.addEventListener('click', () => {
-  fileInput.click()
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+setupFileUpload(dropZone, fileInput, (file) => {
+  selectedFile = file
+  const mainText = dropZone.querySelector('.drop-zone-main')
+  const subText = dropZone.querySelector('.drop-zone-sub')
+  mainText.textContent = file.name
+  subText.textContent = formatFileSize(file.size)
 })
 
-// --- Drop zone drag & drop visual feedback ---
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault()
-  dropZone.classList.add('dragover')
-})
+// --- Start button ---
+const startBtn = document.getElementById('start-btn')
+const urlInput = document.getElementById('url-input')
 
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('dragover')
-})
+startBtn.addEventListener('click', async () => {
+  const url = urlInput.value.trim()
 
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault()
-  dropZone.classList.remove('dragover')
+  if (!selectedFile && !url) {
+    alert('請先選擇影片檔案或貼上影片網址。')
+    return
+  }
+
+  let file = selectedFile
+
+  if (!file && url) {
+    try {
+      startBtn.disabled = true
+      startBtn.textContent = '下載影片中...'
+      file = await fetchVideoFromURL(url)
+      selectedFile = file
+    } catch (err) {
+      alert(err.message)
+      return
+    } finally {
+      startBtn.disabled = false
+      startBtn.textContent = '開始轉寫'
+    }
+  }
+
+  // TODO: Task 7 will add the actual processing pipeline here
+  console.log('Selected file:', file.name, 'Size:', formatFileSize(file.size), 'Type:', file.type)
 })
