@@ -104,7 +104,15 @@ startBtn.addEventListener('click', async () => {
     }
   }
 
+  // File size warning
+  if (file.size > 500 * 1024 * 1024) {
+    if (!confirm('檔案大於 500MB，可能導致瀏覽器記憶體不足。是否繼續？')) {
+      return
+    }
+  }
+
   startBtn.disabled = true
+  startBtn.textContent = '處理中...'
   document.getElementById('results-section').style.display = 'none'
 
   try {
@@ -170,4 +178,15 @@ document.getElementById('download-srt-btn').addEventListener('click', () => {
 document.getElementById('download-txt-btn').addEventListener('click', () => {
   const name = (selectedFile?.name || 'video').replace(/\.[^.]+$/, '') + '.txt'
   download(textContent, name)
+})
+
+// --- Reset / Restart ---
+document.getElementById('reset-btn').addEventListener('click', () => {
+  selectedFile = null
+  srtContent = ''
+  textContent = ''
+  document.getElementById('results-section').style.display = 'none'
+  document.getElementById('url-input').value = ''
+  document.getElementById('drop-zone').querySelector('.drop-zone-main').textContent = '拖拽影片到此處，或點擊上傳'
+  document.getElementById('drop-zone').querySelector('.drop-zone-sub').textContent = '支援 mp4, mov, webm, mkv'
 })

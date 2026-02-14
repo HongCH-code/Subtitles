@@ -141,9 +141,9 @@ header h1 {
 #start-btn {
   display: block;
   width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: #fff;
   background-color: #4a90d9;
   border: none;
@@ -272,6 +272,25 @@ header h1 {
   color: #333;
 }
 
+/* ===== Reset Button ===== */
+#reset-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: #888;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s;
+}
+
+#reset-btn:hover {
+  color: #555;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 520px) {
   #app {
@@ -292,6 +311,14 @@ header h1 {
 
   .setting-group select,
   .setting-group input[type="number"] {
+    width: 100%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
     width: 100%;
   }
 }
