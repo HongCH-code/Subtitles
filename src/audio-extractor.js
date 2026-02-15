@@ -18,10 +18,19 @@ async function loadFFmpeg(onProgress) {
 
   // Load FFmpeg core from same-origin public directory to avoid COEP issues
   const baseURL = window.location.origin + '/ffmpeg'
-  await instance.load({
+  console.log('[FFmpeg] Loading from:', baseURL)
+
+  const loadPromise = instance.load({
     coreURL: `${baseURL}/ffmpeg-core.js`,
     wasmURL: `${baseURL}/ffmpeg-core.wasm`,
   })
+
+  // Timeout after 30 seconds
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('FFmpeg 載入超時（30秒）。請重新整理頁面再試。')), 30000)
+  )
+
+  await Promise.race([loadPromise, timeoutPromise])
 
   // Only assign to module-level variable after successful load
   ffmpeg = instance

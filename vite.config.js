@@ -8,7 +8,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ['@huggingface/transformers'],
+    exclude: ['@huggingface/transformers', '@ffmpeg/ffmpeg', '@ffmpeg/util'],
   },
   server: {
     headers: {
