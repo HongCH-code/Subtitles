@@ -1,5 +1,5 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { fetchFile } from '@ffmpeg/util'
 
 let ffmpeg = null
 
@@ -12,10 +12,15 @@ async function loadFFmpeg(onProgress) {
     onProgress?.(`提取音訊中... ${Math.round(progress * 100)}%`, progress)
   })
 
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
+  instance.on('log', ({ message }) => {
+    console.log('[FFmpeg]', message)
+  })
+
+  // Load FFmpeg core from same-origin public directory to avoid COEP issues
+  const baseURL = window.location.origin + '/ffmpeg'
   await instance.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    coreURL: `${baseURL}/ffmpeg-core.js`,
+    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
   })
 
   // Only assign to module-level variable after successful load

@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 // When deploying to production, configure your hosting provider / reverse proxy
 // to send these same headers:
 //   Cross-Origin-Opener-Policy: same-origin
-//   Cross-Origin-Embedder-Policy: require-corp
+//   Cross-Origin-Embedder-Policy: credentialless
 
 export default defineConfig({
   optimizeDeps: {
@@ -13,13 +13,13 @@ export default defineConfig({
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
   preview: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
 });
