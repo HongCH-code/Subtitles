@@ -89,25 +89,39 @@ function formatSRTTime(seconds) {
 
 /**
  * Generate SRT format string from subtitle segments.
+ * If translations are provided, each subtitle block shows original text + translation.
  *
  * @param {Array<{start: number, end: number, text: string}>} segments
+ * @param {string[]} [translations] - Optional array of translated text (same length as segments)
  * @returns {string}
  */
-export function generateSRT(segments) {
+export function generateSRT(segments, translations) {
   return segments
-    .map(
-      (seg, i) =>
-        `${i + 1}\n${formatSRTTime(seg.start)} --> ${formatSRTTime(seg.end)}\n${seg.text}\n`
-    )
+    .map((seg, i) => {
+      const lines = [seg.text]
+      if (translations?.[i]) {
+        lines.push(translations[i])
+      }
+      return `${i + 1}\n${formatSRTTime(seg.start)} --> ${formatSRTTime(seg.end)}\n${lines.join('\n')}\n`
+    })
     .join('\n');
 }
 
 /**
  * Generate plain text transcript from subtitle segments.
+ * If translations are provided, shows original + translation per line.
  *
  * @param {Array<{start: number, end: number, text: string}>} segments
+ * @param {string[]} [translations] - Optional array of translated text
  * @returns {string}
  */
-export function generateText(segments) {
-  return segments.map((seg) => seg.text).join('\n');
+export function generateText(segments, translations) {
+  return segments
+    .map((seg, i) => {
+      if (translations?.[i]) {
+        return `${seg.text}\n${translations[i]}`
+      }
+      return seg.text
+    })
+    .join('\n\n');
 }

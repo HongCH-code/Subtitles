@@ -3,6 +3,7 @@ import { setupFileUpload, fetchVideoFromURL } from './file-handler.js'
 import { extractAudio } from './audio-extractor.js'
 import { transcribe } from './transcriber.js'
 import { resegment, generateSRT, generateText } from './subtitle-generator.js'
+import { translateEnToZh } from './translator.js'
 
 // --- Module-level state for results ---
 let srtContent = ''
@@ -132,10 +133,23 @@ startBtn.addEventListener('click', async () => {
     audioData = null
 
     // 3. Process subtitles
-    showProgress('產生字幕...', 0.9)
+    showProgress('產生字幕...', 0.85)
     const segments = resegment(chunks, settings.interval)
-    srtContent = generateSRT(segments)
-    textContent = generateText(segments)
+
+    // 4. Translate English to Traditional Chinese if needed
+    let translations = null
+    const isEnglish = settings.language === 'en' ||
+      (settings.language === 'auto' && segments.length > 0 && /^[a-zA-Z0-9\s.,!?'"-]+$/.test(segments[0].text))
+
+    if (isEnglish) {
+      const textsToTranslate = segments.map((seg) => seg.text)
+      translations = await translateEnToZh(textsToTranslate, showProgress)
+    }
+
+    // 5. Generate output
+    showProgress('產生字幕...', 0.95)
+    srtContent = generateSRT(segments, translations)
+    textContent = generateText(segments, translations)
 
     // 4. Show results
     hideProgress()
