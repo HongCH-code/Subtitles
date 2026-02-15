@@ -1,6 +1,8 @@
 import { pipeline } from '@huggingface/transformers'
+import * as OpenCC from 'opencc-js'
 
 let translator = null
+const s2tConverter = OpenCC.Converter({ from: 'cn', to: 'tw' })
 
 /**
  * Translate an array of English text segments to Traditional Chinese.
@@ -37,7 +39,8 @@ export async function translateEnToZh(texts, onProgress) {
     }
 
     const output = await translator(text)
-    results.push(output[0].translation_text)
+    // Convert Simplified Chinese to Traditional Chinese (Taiwan)
+    results.push(s2tConverter(output[0].translation_text))
 
     // Update progress
     const progress = 0.3 + (0.7 * (i + 1)) / texts.length
